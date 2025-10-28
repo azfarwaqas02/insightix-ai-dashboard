@@ -27,7 +27,7 @@ uploaded_file = st.sidebar.file_uploader("📂 Upload CSV file", type=["csv"])
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 except Exception as e:
-    st.error("⚠️ Gemini API key not found in `.streamlit/secrets.toml`.\n\nAdd this line:\nGEMINI_API_KEY = 'your_api_key_here'")
+    st.error("⚠️ Gemini API key not found in `.streamlit/secrets.toml`.\n\nAdd this line:\nGEMINI_API_KEY = 'AIzaSyAuMNzJZg9NHFxfjTUOcCz2rFyuu3ySsnY'")
     st.stop()
 
 if uploaded_file:
