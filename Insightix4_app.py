@@ -27,9 +27,10 @@ uploaded_file = st.sidebar.file_uploader("📂 Upload CSV file", type=["csv"])
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 except Exception as e:
-    st.error("⚠️ Gemini API key not found in `.streamlit/secrets.toml`.\n\nAdd this line:\nGEMINI_API_KEY = 'AIzaSyAuMNzJZg9NHFxfjTUOcCz2rFyuu3ySsnY'")
+    st.error("⚠️ Gemini API key not found in `.streamlit/secrets.toml`.\n\nAdd this line:\nGEMINI_API_KEY = 'your_api_key_here'")
     st.stop()
 
+# --- IF FILE UPLOADED ---
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.sidebar.success("✅ Data uploaded successfully!")
@@ -125,52 +126,53 @@ if uploaded_file:
             else:
                 st.warning("Need at least two numeric columns for regression analysis.")
 
-    # --- TAB 4: AI INSIGHTS (Gemini Chatbot) ---
-    with tab4:
-        st.subheader("🤖 Insightix AI Chatbot (Gemini Powered)")
-
-        if uploaded_file is not None:
-            st.markdown("Ask questions about your uploaded data in natural language:")
-
-            if "chat_history" not in st.session_state:
-                st.session_state.chat_history = []
-
-            user_input = st.chat_input("Type your question (e.g. 'Which region has highest sales?')")
-
-            if user_input:
-                st.session_state.chat_history.append({"role": "user", "content": user_input})
-
-                # Prepare the dataset sample for Gemini context
-                data_sample = df.head(50).to_dict(orient="records")
-                data_json = json.dumps(data_sample)
-
-                prompt = f"""
-                You are a professional data analyst. Analyze this dataset:
-                {data_json}
-
-                The user asked: "{user_input}"
-
-                Provide a clear, data-driven answer using bullet points, summaries, or calculations where helpful.
-                """
-
-                # Gemini Query
-                with st.spinner("💡 Thinking with Gemini..."):
-                    try:
-                        model = genai.GenerativeModel("gemini-2.5-flash")
-                        response = model.generate_content(prompt)
-                        ai_reply = response.text
-                    except Exception as e:
-                        ai_reply = f"⚠️ Gemini error: {e}"
-
-                st.session_state.chat_history.append({"role": "assistant", "content": ai_reply})
-
-            # Display chat history
-            for message in st.session_state.chat_history:
-                with st.chat_message(message["role"]):
-                    st.markdown(message["content"])
-
-        else:
-            st.info("👆 Upload a CSV file first to start chatting with Insightix AI.")
-
+# --- TAB 4: AI INSIGHTS (Gemini Chatbot) ---
 else:
-    st.info("👆 Upload a CSV file to begin.")
+    tab4 = st.tabs(["🧠 AI Insights"])[0]
+
+with tab4:
+    st.subheader("🤖 Insightix AI Chatbot (Gemini Powered)")
+
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    user_input = st.chat_input("💬 Ask anything (data or general topics)...")
+
+    if user_input:
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+
+        # Prepare prompt dynamically
+        if uploaded_file:
+            data_sample = df.head(50).to_dict(orient="records")
+            data_json = json.dumps(data_sample)
+            prompt = f"""
+            You are a professional data analyst. Analyze this dataset:
+            {data_json}
+
+            The user asked: "{user_input}"
+
+            Provide a clear, data-driven answer using bullet points, summaries, or calculations where helpful.
+            """
+        else:
+            prompt = f"""
+            You are an intelligent assistant. The user asked:
+            "{user_input}"
+
+            Provide a thoughtful, clear, and conversational response.
+            """
+
+        # Gemini Query
+        with st.spinner("💡 Thinking with Gemini..."):
+            try:
+                model = genai.GenerativeModel("gemini-2.0-flash")
+                response = model.generate_content(prompt)
+                ai_reply = response.text
+            except Exception as e:
+                ai_reply = f"⚠️ Gemini error: {e}"
+
+        st.session_state.chat_history.append({"role": "assistant", "content": ai_reply})
+
+    # Display chat history
+    for message in st.session_state.chat_history:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
