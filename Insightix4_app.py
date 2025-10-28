@@ -164,7 +164,7 @@ with tab4:
         # Gemini Query
         with st.spinner("💡 Thinking with Gemini..."):
             try:
-                model = genai.GenerativeModel("gemini-3.0-flash")
+                model = genai.GenerativeModel("gemini-2.5-flash")
                 response = model.generate_content(prompt)
                 ai_reply = response.text
             except Exception as e:
